@@ -9,7 +9,6 @@ from config import settings
 async_engine: AsyncEngine = create_async_engine(
     url=settings.DATABASE_URL,
     echo=settings.DATABASE_ECHO,
-    pool_size=settings.DATABASE_POOL_SIZE
 )
 async_session_maker: AsyncSession = async_sessionmaker(
     bind=async_engine,
