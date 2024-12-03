@@ -7,6 +7,10 @@ class Settings(BaseSettings):
     APP_HOST: str
     APP_PORT: int
 
+    DATABASE_URL: str
+    DATABASE_ECHO: bool
+    DATABASE_POOL_SIZE: int
+
     model_config = SettingsConfigDict(
         env_file='.env',
     )
