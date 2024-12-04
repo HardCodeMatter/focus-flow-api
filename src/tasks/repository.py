@@ -30,6 +30,14 @@ class TaskRepository(BaseRepository):
 
         return [TaskRead(**task.__dict__) for task in tasks]
     
+    async def task_exists_by_id(self, _id: str) -> bool:
+        stmt: Select[Task] = select(Task).filter_by(id=_id)
+        task: Task = (
+            await self.session.execute(stmt)
+        ).first()
+
+        return task is not None
+    
     async def task_exists_by_title(self, title: str) -> bool:
         stmt: Select[Task] = select(Task).filter_by(title=title)
         task: Task = (
