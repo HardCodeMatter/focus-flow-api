@@ -1,8 +1,9 @@
 from sqlalchemy import Select, select
 
-from models import Task
 from repository import BaseRepository
-from schemas import TaskCreate, TaskRead, TaskUpdate
+
+from .models import Task
+from .schemas import TaskCreate, TaskRead, TaskUpdate
 
 
 class TaskRepository(BaseRepository):
@@ -26,8 +27,8 @@ class TaskRepository(BaseRepository):
         stmt: Select[list[Task]] = select(Task)
         tasks: list[Task] = (
             await self.session.execute(stmt)
-        ).all()
-
+        ).scalars().all()
+        
         return [TaskRead(**task.__dict__) for task in tasks]
     
     async def task_exists_by_id(self, _id: str) -> bool:

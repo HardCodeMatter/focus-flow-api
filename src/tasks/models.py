@@ -20,7 +20,7 @@ class Task(Base):
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
     def __str__(self) -> str:
-        return f'Task(id={self.id}, title{self.title}, is_completed={self.is_completed})'
+        return f'Task(id="{self.id}", title="{self.title}", is_completed="{self.is_completed}")'
 
     def __repr__(self) -> str:
-        return self.__str__
+        return self.__str__()

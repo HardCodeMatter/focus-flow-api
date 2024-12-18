@@ -5,10 +5,10 @@ from pydantic import BaseModel
 
 class TaskBase(BaseModel):
     title: str
-    desciption: str
+    description: str
 
 
-class TaskCreate(BaseModel): ...
+class TaskCreate(TaskBase): ...
 
 
 class TaskRead(TaskBase):
