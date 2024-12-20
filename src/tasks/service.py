@@ -27,7 +27,7 @@ class TaskService(BaseService):
     async def get_all(self) -> list[TaskRead]:
         return await self.repository.get_all()
     
-    async def update(self, _id: str, task_data: TaskUpdate) -> TaskRead:
+    async def update(self, _id: str, task_data: TaskUpdate) -> TaskUpdate:
         if not await self.repository.task_exists_by_id(_id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

@@ -15,13 +15,13 @@ class TaskRepository(BaseRepository):
 
         return TaskRead(**task.__dict__)
     
-    async def get_by_id(self, _id: str) -> TaskRead:
-        stmt: Select[Task] = select(Task).filter_by(id=_id)
+    async def get_by_id(self, _id: str) -> Task:
+        stmt: Select[Task] = select(Task).filter(Task.id == _id)
         task: Task = (
             await self.session.execute(stmt)
-        ).first()
+        ).scalar_one_or_none()
 
-        return TaskRead(**task.__dict__)
+        return task
     
     async def get_all(self) -> list[TaskRead]:
         stmt: Select[list[Task]] = select(Task)
@@ -35,7 +35,7 @@ class TaskRepository(BaseRepository):
         stmt: Select[Task] = select(Task).filter_by(id=_id)
         task: Task = (
             await self.session.execute(stmt)
-        ).first()
+        ).scalar_one_or_none()
 
         return task is not None
     
@@ -43,18 +43,18 @@ class TaskRepository(BaseRepository):
         stmt: Select[Task] = select(Task).filter_by(title=title)
         task: Task = (
             await self.session.execute(stmt)
-        ).first()
+        ).scalar_one_or_none()
 
         return task is not None
     
-    async def update(self, task: Task, task_data: TaskUpdate) -> TaskRead:
-        for key, value in task_data.model_dump().items():
+    async def update(self, task: Task, task_data: TaskUpdate) -> TaskUpdate:
+        for key, value in task_data.model_dump(exclude_unset=True).items():
             setattr(task, key, value)
 
         await self.session.commit()
         await self.session.refresh(task)
 
-        return TaskRead(**task.__dict__)
+        return TaskUpdate(**task.__dict__)
     
     async def delete(self, task: Task) -> bool:
         self.session.delete(task)

@@ -38,5 +38,5 @@ async def update_task(
     _id: str,
     task_data: TaskUpdate,
     session: AsyncSession = Depends(get_async_session)
-) -> TaskRead:
+) -> TaskUpdate:
     return await TaskService(session).update(_id, task_data)

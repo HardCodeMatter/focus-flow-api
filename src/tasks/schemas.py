@@ -19,4 +19,6 @@ class TaskRead(TaskBase):
 
 
 class TaskUpdate(TaskBase):
-    is_completed: bool
+    title: str | None = None
+    description: str | None = None
+    is_completed: bool | None = None
