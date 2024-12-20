@@ -3,36 +3,37 @@ from sqlalchemy import Select, select
 from repository import BaseRepository
 
 from .models import Task
-from .schemas import TaskCreate, TaskRead, TaskUpdate
+from .schemas import TaskCreate, TaskUpdate
 
 
 class TaskRepository(BaseRepository):
-    async def create(self, task_data: TaskCreate) -> TaskRead:
+    async def create(self, task_data: TaskCreate) -> Task:
         task: Task = Task(**task_data.model_dump())
+        
         self.session.add(task)
         await self.session.commit()
         await self.session.refresh(task)
 
-        return TaskRead(**task.__dict__)
+        return task
     
-    async def get_by_id(self, _id: str) -> Task:
-        stmt: Select[Task] = select(Task).filter(Task.id == _id)
+    async def get_by_id(self, id: str) -> Task:
+        stmt: Select[Task] = select(Task).filter_by(id=id)
         task: Task = (
             await self.session.execute(stmt)
         ).scalar_one_or_none()
 
         return task
     
-    async def get_all(self) -> list[TaskRead]:
+    async def get_all(self) -> list[Task]:
         stmt: Select[list[Task]] = select(Task)
         tasks: list[Task] = (
             await self.session.execute(stmt)
         ).scalars().all()
         
-        return [TaskRead(**task.__dict__) for task in tasks]
+        return tasks
     
-    async def task_exists_by_id(self, _id: str) -> bool:
-        stmt: Select[Task] = select(Task).filter_by(id=_id)
+    async def task_exists_by_id(self, id: str) -> bool:
+        stmt: Select[Task] = select(Task).filter_by(id=id)
         task: Task = (
             await self.session.execute(stmt)
         ).scalar_one_or_none()
@@ -47,14 +48,14 @@ class TaskRepository(BaseRepository):
 
         return task is not None
     
-    async def update(self, task: Task, task_data: TaskUpdate) -> TaskUpdate:
+    async def update(self, task: Task, task_data: TaskUpdate) -> Task:
         for key, value in task_data.model_dump(exclude_unset=True).items():
             setattr(task, key, value)
 
         await self.session.commit()
         await self.session.refresh(task)
 
-        return TaskUpdate(**task.__dict__)
+        return task
     
     async def delete(self, task: Task) -> bool:
         self.session.delete(task)

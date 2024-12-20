@@ -22,10 +22,10 @@ async def create_task(
 
 @router.get('/tasks/{_id}')
 async def get_task_by_id(
-    _id: str,
+    id: str,
     session: AsyncSession = Depends(get_async_session)
 ) -> TaskRead:
-    return await TaskService(session).get_by_id(_id)
+    return await TaskService(session).get_by_id(id)
 
 
 @router.get('/tasks')
@@ -33,10 +33,10 @@ async def get_tasks(session: AsyncSession = Depends(get_async_session)) -> list[
     return await TaskService(session).get_all()
 
 
-@router.patch('/tasks/{_id}/update')
+@router.patch('/tasks/{id}/update')
 async def update_task(
-    _id: str,
+    id: str,
     task_data: TaskUpdate,
     session: AsyncSession = Depends(get_async_session)
 ) -> TaskUpdate:
-    return await TaskService(session).update(_id, task_data)
+    return await TaskService(session).update(id, task_data)
