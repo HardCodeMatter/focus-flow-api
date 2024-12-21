@@ -58,7 +58,7 @@ class TaskRepository(BaseRepository):
         return task
     
     async def delete(self, task: Task) -> bool:
-        self.session.delete(task)
+        await self.session.delete(task)
         await self.session.commit()
 
         return True

@@ -5,7 +5,7 @@ from service import BaseService
 
 from .models import Task
 from .repository import TaskRepository
-from .schemas import TaskCreate, TaskRead, TaskUpdate
+from .schemas import TaskCreate, TaskUpdate
 
 
 class TaskService(BaseService):
@@ -39,7 +39,7 @@ class TaskService(BaseService):
 
         return await self.repository.update(task, task_data)
     
-    async def delete(self, id: str) -> bool:
+    async def delete(self, id: str) -> dict[str, str]:
         if not await self.repository.task_exists_by_id(id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -49,4 +49,6 @@ class TaskService(BaseService):
         task: Task = await self.repository.get_by_id(id)
         await self.repository.delete(task)
 
-        return True
+        return {
+            'detail': 'Task is successful deleted.'
+        }
