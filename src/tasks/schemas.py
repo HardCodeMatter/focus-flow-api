@@ -1,3 +1,4 @@
+from enum import Enum
 from datetime import datetime
 
 from fastapi import HTTPException, status
@@ -64,3 +65,19 @@ class TaskCreate(TaskBase): ...
 
 class TaskUpdate(TaskBase):
     is_completed: bool | None = None
+
+
+class SortBy(Enum):
+    priority: str = 'priority'
+    created_at: str = 'created_at'
+    is_completed: str = 'is_completed'
+
+
+class Order(Enum):
+    asc: str = 'asc'
+    desc: str = 'desc'
+
+
+class TaskQueryParams(BaseModel):
+    sort_by: SortBy = SortBy.priority
+    order: Order = Order.desc

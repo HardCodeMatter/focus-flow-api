@@ -1,11 +1,12 @@
 from fastapi import HTTPException, status
+from sqlalchemy import asc, desc, case
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from service import BaseService
 
 from .models import Task
 from .repository import TaskRepository
-from .schemas import TaskCreate, TaskUpdate
+from .schemas import TaskCreate, TaskUpdate, SortBy, Order, TaskQueryParams
 
 
 class TaskService(BaseService):
@@ -20,13 +21,30 @@ class TaskService(BaseService):
         if not await self.repository.task_exists_by_id(id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail='Task is not found',
+                detail='Task is not found.',
             )
         
         return await self.repository.get_by_id(id)
     
-    async def get_all(self) -> list[Task]:
-        return await self.repository.get_all()
+    async def get_all(self, page: int, limit: int, params: TaskQueryParams) -> list[Task]:
+        sort_by_mapping: dict = {
+            SortBy.priority: case(
+                (Task.priority == 'low', 1),
+                (Task.priority == 'medium', 2),
+                (Task.priority == 'high', 3),
+            ),
+            SortBy.created_at: Task.created_at,
+            SortBy.is_completed: Task.is_completed,
+        }
+        order_mapping: dict = {
+            Order.asc: asc,
+            Order.desc: desc,
+        }
+
+        sort_by = sort_by_mapping[params.sort_by]
+        order_direction = order_mapping[params.order]
+
+        return await self.repository.get_all(page, limit, sort_by, order_direction)
     
     async def update(self, id: str, task_data: TaskUpdate) -> Task:
         if not await self.repository.task_exists_by_id(id):

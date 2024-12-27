@@ -1,4 +1,5 @@
 from sqlalchemy import Select, select
+from sqlalchemy.sql.elements import UnaryExpression
 
 from repository import BaseRepository
 
@@ -24,8 +25,13 @@ class TaskRepository(BaseRepository):
 
         return task
     
-    async def get_all(self) -> list[Task]:
-        stmt: Select[list[Task]] = select(Task)
+    async def get_all(self, page: int, limit: int, sort_by: str, order: UnaryExpression) -> list[Task]:
+        stmt: Select[list[Task]] = (
+            select(Task)
+            .order_by(order(sort_by))
+            .offset((page - 1) * limit)
+            .limit(limit)
+        )
         tasks: list[Task] = (
             await self.session.execute(stmt)
         ).scalars().all()

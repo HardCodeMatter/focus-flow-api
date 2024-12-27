@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_async_session
 
-from .schemas import TaskCreate, TaskRead, TaskUpdate
+from .schemas import TaskCreate, TaskRead, TaskUpdate, TaskQueryParams
 from .service import TaskService
 
 
@@ -29,8 +29,13 @@ async def get_task_by_id(
 
 
 @router.get('/tasks', status_code=200)
-async def get_tasks(session: AsyncSession = Depends(get_async_session)) -> list[TaskRead]:
-    return await TaskService(session).get_all()
+async def get_tasks(
+    params: TaskQueryParams = Depends(),
+    page: int = 1,
+    limit: int = 10,
+    session: AsyncSession = Depends(get_async_session)
+) -> list[TaskRead]:
+    return await TaskService(session).get_all(page, limit, params)
 
 
 @router.patch('/tasks/{id}/update', status_code=200)
