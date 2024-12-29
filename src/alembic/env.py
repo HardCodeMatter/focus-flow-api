@@ -9,7 +9,7 @@ from alembic import context
 
 from config import settings
 from database import Base
-from tasks.models import Task
+from tasks.models import Task, Tag
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -32,3 +32,19 @@ class Task(Base):
 
     def __repr__(self) -> str:
         return self.__str__()
+
+
+class Tag(Base):
+    __tablename__ = 'tags'
+
+    id: Mapped[str] = mapped_column(primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    title: Mapped[str] = mapped_column(nullable=False)
+    
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+    def __str__(self) -> str:
+        return f'Tag(id="{self.id}", title="{self.title}")'
+
+    def __repr__(self) -> str:
+        return self.__str__()

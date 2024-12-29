@@ -81,3 +81,38 @@ class Order(Enum):
 class TaskQueryParams(BaseModel):
     sort_by: SortBy = SortBy.priority
     order: Order = Order.desc
+
+
+class TagBase(BaseModel):
+    title: str
+
+    @field_validator('title')
+    @classmethod
+    def validate_title(cls, value: str) -> str:
+        if value is None:
+            return value
+        
+        return cls.validate_length(value, 'Title', 2, 10)
+
+    @staticmethod
+    def validate_length(value: str, field_name: str, min_length: int, max_length: int) -> str:
+        if not (min_length <= len(value.strip()) <= max_length):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f'{field_name} length must be between {min_length} and {max_length} characters.',
+            )
+        
+        return value
+
+
+class TagRead(BaseModel):
+    id: str
+    title: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class TagCreate(TagBase): ...
+
+
+class TagUpdate(TagBase): ...
