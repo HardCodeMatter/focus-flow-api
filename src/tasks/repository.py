@@ -3,8 +3,8 @@ from sqlalchemy.sql.elements import UnaryExpression
 
 from repository import BaseRepository
 
-from .models import Task
-from .schemas import TaskCreate, TaskUpdate
+from .models import Task, Tag
+from .schemas import TaskCreate, TaskUpdate, TagCreate, TagUpdate
 
 
 class TaskRepository(BaseRepository):
@@ -68,3 +68,57 @@ class TaskRepository(BaseRepository):
         await self.session.commit()
 
         return True
+
+
+class TagRepository(BaseRepository):
+    async def create(self, tag_data: TagCreate) -> Tag:
+        tag: Tag = Tag(**tag_data.model_dump())
+
+        self.session.add(tag)
+        await self.session.commit()
+        await self.session.refresh(tag)
+
+        return tag
+    
+    async def get_by_id(self, id: str) -> Tag:
+        stmt: Select[Tag] = select(Tag).filter_by(id=id)
+        tag: Tag = (
+            await self.session.execute(stmt)
+        ).scalar_one_or_none()
+
+        return tag
+
+    async def get_all(self, page: int, limit: int) -> list[Tag]:
+        stmt: Select[list[Tag]] = (
+            select(Tag)
+            .offset((page - 1) * limit)
+            .limit(limit)
+        )
+        tags: list[Tag] = (
+            await self.session.execute(stmt)
+        ).scalars().all()
+
+        return tags
+
+    async def update(self, tag: Tag, tag_data: TagCreate) -> Tag:
+        for key, value in tag_data.model_dump(exclude_unset=True).items():
+            setattr(tag, key, value)
+
+        await self.session.commit()
+        await self.session.refresh(tag)
+
+        return tag
+
+    async def delete(self, tag: Tag) -> bool:
+        await self.session.delete(tag)
+        await self.session.commit()
+
+        return True
+
+    async def tag_exists_by_id(self, id: str) -> bool:
+        stmt: Select[Tag] = select(Tag).filter_by(id=id)
+        tag: Tag = (
+            await self.session.execute(stmt)
+        ).scalar_one_or_none()
+
+        return tag is not None
