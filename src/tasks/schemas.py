@@ -2,7 +2,7 @@ from enum import Enum
 from datetime import datetime
 
 from fastapi import HTTPException, status
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from .models import Priority
 
@@ -10,7 +10,7 @@ from .models import Priority
 class TaskBase(BaseModel):
     title: str | None = None
     description: str | None = None
-    priority: Priority
+    priority: 'Priority' = Priority.low
 
     @field_validator('title', mode='before')
     @classmethod
@@ -56,11 +56,17 @@ class TaskRead(BaseModel):
     description: str
     is_completed: bool
     priority: Priority
+    related_tags: list['TagRead'] = []
     created_at: datetime
     updated_at: datetime
 
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
-class TaskCreate(TaskBase): ...
+
+class TaskCreate(TaskBase):
+    related_tags: list[str]
 
 
 class TaskUpdate(TaskBase):

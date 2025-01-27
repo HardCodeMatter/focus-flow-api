@@ -1,4 +1,3 @@
-import stat
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,7 +41,7 @@ async def update_task(
     id: str,
     task_data: TaskUpdate,
     session: AsyncSession = Depends(get_async_session)
-) -> TaskUpdate:
+) -> TaskRead:
     return await TaskService(session).update(id, task_data)
 
 

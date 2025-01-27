@@ -13,9 +13,12 @@ class TaskService(BaseService):
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(session)
         self.repository = TaskRepository(self.session)
+        self.tag_repository = TagRepository(self.session)
 
     async def create(self, task_data: TaskCreate) -> Task:
-        return await self.repository.create(task_data)
+        tags: list[Tag] = await self.tag_repository.filter_by_id(task_data.related_tags)
+
+        return await self.repository.create(task_data, tags)
     
     async def get_by_id(self, id: str) -> Task:
         if not await self.repository.task_exists_by_id(id):

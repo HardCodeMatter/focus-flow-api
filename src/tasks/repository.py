@@ -1,4 +1,5 @@
 from sqlalchemy import Select, select
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.sql.elements import UnaryExpression
 
 from repository import BaseRepository
@@ -8,17 +9,27 @@ from .schemas import TaskCreate, TaskUpdate, TagCreate, TagUpdate
 
 
 class TaskRepository(BaseRepository):
-    async def create(self, task_data: TaskCreate) -> Task:
-        task: Task = Task(**task_data.model_dump())
+    async def create(self, task_data: TaskCreate, tags: list[Tag]) -> Task:
+        # stmt: Select[list[Tag]] = select(Tag).filter(Tag.id.in_(task_data.related_tags))
+        # tags: list[Tag] = (
+        #     await self.session.execute(stmt)
+        # ).scalars().all()
+
+        task: Task = Task(
+            title=task_data.title,
+            description=task_data.description,
+            priority=task_data.priority,
+            related_tags=tags,
+        )
         
         self.session.add(task)
         await self.session.commit()
-        await self.session.refresh(task)
+        await self.session.refresh(task, ['related_tags'])
 
         return task
     
     async def get_by_id(self, id: str) -> Task:
-        stmt: Select[Task] = select(Task).filter_by(id=id)
+        stmt: Select[Task] = select(Task).filter_by(id=id).options(selectinload(Task.related_tags))
         task: Task = (
             await self.session.execute(stmt)
         ).scalar_one_or_none()
@@ -28,6 +39,7 @@ class TaskRepository(BaseRepository):
     async def get_all(self, page: int, limit: int, sort_by: str, order: UnaryExpression) -> list[Task]:
         stmt: Select[list[Task]] = (
             select(Task)
+            .options(selectinload(Task.related_tags))
             .order_by(order(sort_by))
             .offset((page - 1) * limit)
             .limit(limit)
@@ -99,8 +111,16 @@ class TagRepository(BaseRepository):
         ).scalars().all()
 
         return tags
+    
+    async def filter_by_id(self, tag_ids: list[str]) -> list[Tag]:
+        stmt: Select[list[Tag]] = select(Tag).filter(Tag.id.in_(tag_ids))
+        tags: list[Tag] = (
+            await self.session.execute(stmt)
+        ).scalars().all()
 
-    async def update(self, tag: Tag, tag_data: TagCreate) -> Tag:
+        return tags
+
+    async def update(self, tag: Tag, tag_data: TagUpdate) -> Tag:
         for key, value in tag_data.model_dump(exclude_unset=True).items():
             setattr(tag, key, value)
 
