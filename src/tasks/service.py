@@ -92,14 +92,42 @@ class TaskService(BaseService):
 
         if await self.repository.tag_exists_in_task(task_id, tag):
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_409_CONFLICT,
                 detail='Tag is already added.'
             )
 
         await self.repository.add_tag(task, tag)
 
         return {
-            'detail': 'Tags are successful added.'
+            'detail': 'Tag is added successful.'
+        }
+    
+    async def remove_tag(self, task_id: str, tag_id: str) -> dict:
+        if not await self.repository.task_exists_by_id(task_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Task is not found.'
+            )
+        
+        if not await self.tag_repository.tag_exists_by_id(tag_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Tag is not found.'
+            )
+        
+        task: Task = await self.repository.get_by_id(task_id)
+        tag: Tag = await self.tag_repository.get_by_id(tag_id)
+
+        if not await self.repository.tag_exists_in_task(task_id, tag):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Tag is already removed.'
+            )
+        
+        await self.repository.remove_tag(task, tag)
+
+        return {
+            'detail': 'Tag is removed successful.'
         }
 
 

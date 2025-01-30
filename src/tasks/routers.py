@@ -62,6 +62,15 @@ async def add_tag(
     return await TaskService(session).add_tag(task_id, tag_id)
 
 
+@router.delete('/tasks/{task_id}/tags', status_code=200, tags=['Tasks'])
+async def remove_tag(
+    task_id: str,
+    tag_id: str,
+    session: AsyncSession = Depends(get_async_session)
+) -> dict:
+    return await TaskService(session).remove_tag(task_id, tag_id)
+
+
 @router.post('/tags', status_code=201, tags=['Tags'])
 async def create_tag(
     tag_data: TagCreate,

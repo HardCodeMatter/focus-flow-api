@@ -83,6 +83,14 @@ class TaskRepository(BaseRepository):
 
         return True
     
+    async def remove_tag(self, task: Task, tag: Tag) -> bool:
+        task.related_tags.remove(tag)
+
+        await self.session.commit()
+        await self.session.refresh(task, ['related_tags'])
+
+        return True
+    
     async def tag_exists_in_task(self, task_id: str, tag: Tag) -> bool:
         stmt: Select[Task] = select(Task).filter(Task.id == task_id, Task.related_tags.contains(tag))
         task: Task = (
