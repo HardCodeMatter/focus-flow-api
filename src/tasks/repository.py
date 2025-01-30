@@ -4,17 +4,12 @@ from sqlalchemy.sql.elements import UnaryExpression
 
 from repository import BaseRepository
 
-from .models import Task, Tag
+from .models import Task, Tag, TaskTag
 from .schemas import TaskCreate, TaskUpdate, TagCreate, TagUpdate
 
 
 class TaskRepository(BaseRepository):
     async def create(self, task_data: TaskCreate, tags: list[Tag]) -> Task:
-        # stmt: Select[list[Tag]] = select(Tag).filter(Tag.id.in_(task_data.related_tags))
-        # tags: list[Tag] = (
-        #     await self.session.execute(stmt)
-        # ).scalars().all()
-
         task: Task = Task(
             title=task_data.title,
             description=task_data.description,
@@ -80,6 +75,21 @@ class TaskRepository(BaseRepository):
         await self.session.commit()
 
         return True
+    
+    async def add_tag(self, task: Task, tag: Tag) -> bool:
+        task.related_tags.append(tag)
+
+        await self.session.commit()
+
+        return True
+    
+    async def tag_exists_in_task(self, task_id: str, tag: Tag) -> bool:
+        stmt: Select[Task] = select(Task).filter(Task.id == task_id, Task.related_tags.contains(tag))
+        task: Task = (
+            await self.session.execute(stmt)
+        ).scalar_one_or_none()
+
+        return task is not None
 
 
 class TagRepository(BaseRepository):
@@ -92,8 +102,8 @@ class TagRepository(BaseRepository):
 
         return tag
     
-    async def get_by_id(self, id: str) -> Tag:
-        stmt: Select[Tag] = select(Tag).filter_by(id=id)
+    async def get_by_id(self, tag_id: str) -> Tag:
+        stmt: Select[Tag] = select(Tag).filter_by(id=tag_id)
         tag: Tag = (
             await self.session.execute(stmt)
         ).scalar_one_or_none()
@@ -112,13 +122,13 @@ class TagRepository(BaseRepository):
 
         return tags
     
-    async def filter_by_id(self, tag_ids: list[str]) -> list[Tag]:
-        stmt: Select[list[Tag]] = select(Tag).filter(Tag.id.in_(tag_ids))
-        tags: list[Tag] = (
-            await self.session.execute(stmt)
-        ).scalars().all()
+    # async def filter_by_id(self, tag_ids: list[str]) -> list[Tag]:
+    #     stmt: Select[list[Tag]] = select(Tag).filter(Tag.id.in_(tag_ids))
+    #     tags: list[Tag] = (
+    #         await self.session.execute(stmt)
+    #     ).scalars().all()
 
-        return tags
+    #     return tags
 
     async def update(self, tag: Tag, tag_data: TagUpdate) -> Tag:
         for key, value in tag_data.model_dump(exclude_unset=True).items():
