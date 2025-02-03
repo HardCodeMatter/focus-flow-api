@@ -1,10 +1,10 @@
 from sqlalchemy import Select, select
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.elements import UnaryExpression
 
 from repository import BaseRepository
 
-from .models import Task, Tag, TaskTag
+from .models import Task, Tag
 from .schemas import TaskCreate, TaskUpdate, TagCreate, TagUpdate
 
 
@@ -13,6 +13,7 @@ class TaskRepository(BaseRepository):
         task: Task = Task(
             title=task_data.title,
             description=task_data.description,
+            status=task_data.status,
             priority=task_data.priority,
             related_tags=tags,
         )
@@ -129,14 +130,6 @@ class TagRepository(BaseRepository):
         ).scalars().all()
 
         return tags
-    
-    # async def filter_by_id(self, tag_ids: list[str]) -> list[Tag]:
-    #     stmt: Select[list[Tag]] = select(Tag).filter(Tag.id.in_(tag_ids))
-    #     tags: list[Tag] = (
-    #         await self.session.execute(stmt)
-    #     ).scalars().all()
-
-    #     return tags
 
     async def update(self, tag: Tag, tag_data: TagUpdate) -> Tag:
         for key, value in tag_data.model_dump(exclude_unset=True).items():

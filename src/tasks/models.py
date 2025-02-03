@@ -14,6 +14,12 @@ class Priority(str, Enum):
     high = 'high'
 
 
+class TaskStatus(str, Enum):
+    ongoing = 'ongoing'
+    completed = 'completed'
+    overdue = 'overdue'
+
+
 class Task(Base):
     __tablename__ = 'tasks'
 
@@ -21,7 +27,7 @@ class Task(Base):
     title: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column(nullable=True)
 
-    is_completed: Mapped[bool] = mapped_column(default=False)
+    status: Mapped[str] = mapped_column(SQLAlchemyEnum(TaskStatus), server_default=TaskStatus.ongoing, nullable=False)
     priority: Mapped[str] = mapped_column(SQLAlchemyEnum(Priority), server_default=Priority.low, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
@@ -33,7 +39,7 @@ class Task(Base):
     )
 
     def __str__(self) -> str:
-        return f'Task(id="{self.id}", title="{self.title}", is_completed="{self.is_completed}", priority="{self.priority}")'
+        return f'Task(id="{self.id}", title="{self.title}", status="{self.status}", priority="{self.priority}")'
 
     def __repr__(self) -> str:
         return self.__str__()

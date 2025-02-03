@@ -37,7 +37,7 @@ class TaskService(BaseService):
                 (Task.priority == 'high', 3),
             ),
             SortBy.created_at: Task.created_at,
-            SortBy.is_completed: Task.is_completed,
+            SortBy.status: Task.status,
         }
         order_mapping: dict = {
             Order.asc: asc,

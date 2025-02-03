@@ -4,7 +4,13 @@ from datetime import datetime
 from fastapi import HTTPException, status
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from .models import Priority
+from .models import Priority, TaskStatus
+
+
+class TaskStatus(str, Enum):
+    ongoing = 'ongoing'
+    completed = 'completed'
+    overdue = 'overdue'
 
 
 class TaskBase(BaseModel):
@@ -54,7 +60,7 @@ class TaskRead(BaseModel):
     id: str
     title: str
     description: str
-    is_completed: bool
+    status: TaskStatus
     priority: Priority
     related_tags: list['TagRead'] = []
     created_at: datetime
@@ -70,13 +76,24 @@ class TaskCreate(TaskBase):
 
 
 class TaskUpdate(TaskBase):
-    is_completed: bool | None = None
+    status: TaskStatus = TaskStatus.ongoing
+
+    @field_validator('status', mode='before')
+    @classmethod
+    def validate_status(cls, value: str) -> str:
+        if value not in TaskStatus.__members__.values():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f'Unknown value for status.',
+            )
+        
+        return value
 
 
 class SortBy(Enum):
     priority: str = 'priority'
     created_at: str = 'created_at'
-    is_completed: str = 'is_completed'
+    status: str = 'status'
 
 
 class Order(Enum):
