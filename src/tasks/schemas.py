@@ -7,16 +7,12 @@ from pydantic import BaseModel, ConfigDict, field_validator
 from .models import Priority, TaskStatus
 
 
-class TaskStatus(str, Enum):
-    ongoing = 'ongoing'
-    completed = 'completed'
-    overdue = 'overdue'
-
-
 class TaskBase(BaseModel):
     title: str | None = None
     description: str | None = None
+   
     priority: 'Priority' = Priority.low
+    due_date: datetime | None = None
 
     @field_validator('title', mode='before')
     @classmethod
@@ -45,6 +41,34 @@ class TaskBase(BaseModel):
         
         return value
     
+    @field_validator('due_date', mode='before')
+    @classmethod
+    def validate_datetime(cls, value: datetime | None):
+        if value is None:
+            return value
+        
+        try:
+            return datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Mismatching datetime format. It should be YYYY-MM-DDTHH:MM:SS.'
+            )
+
+    @field_validator('due_date', mode='after')
+    @classmethod
+    def validate_due_date(cls, value: datetime | None) -> datetime | None:
+        if value is None:
+            return value
+
+        if value <= datetime.now():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Due date cannot be less than or equal to current date.',
+            )
+        
+        return value
+
     @staticmethod
     def validate_length(value: str, field_name: str, min_length: int, max_length: int) -> str:
         if len(value.strip()) < min_length or len(value.strip()) > max_length:
@@ -65,14 +89,14 @@ class TaskRead(BaseModel):
     related_tags: list['TagRead'] = []
     created_at: datetime
     updated_at: datetime
+    due_date: datetime | None
 
     model_config = ConfigDict(
         from_attributes=True,
     )
 
 
-class TaskCreate(TaskBase):
-    related_tags: list[str]
+class TaskCreate(TaskBase): ...
 
 
 class TaskUpdate(TaskBase):

@@ -9,13 +9,12 @@ from .schemas import TaskCreate, TaskUpdate, TagCreate, TagUpdate
 
 
 class TaskRepository(BaseRepository):
-    async def create(self, task_data: TaskCreate, tags: list[Tag]) -> Task:
+    async def create(self, task_data: TaskCreate) -> Task:
         task: Task = Task(
             title=task_data.title,
             description=task_data.description,
-            status=task_data.status,
             priority=task_data.priority,
-            related_tags=tags,
+            due_date=task_data.due_date,
         )
         
         self.session.add(task)

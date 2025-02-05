@@ -16,9 +16,7 @@ class TaskService(BaseService):
         self.tag_repository = TagRepository(self.session)
 
     async def create(self, task_data: TaskCreate) -> Task:
-        tags: list[Tag] = await self.tag_repository.filter_by_id(task_data.related_tags)
-
-        return await self.repository.create(task_data, tags)
+        return await self.repository.create(task_data)
     
     async def get_by_id(self, id: str) -> Task:
         if not await self.repository.task_exists_by_id(id):
