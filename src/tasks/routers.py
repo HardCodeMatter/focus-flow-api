@@ -52,7 +52,7 @@ async def delete_task(
 ) -> dict:
     return await TaskService(session).delete(id)
 
-
+  
 @router.post('/tasks/{task_id}/tags', status_code=200, tags=['Tasks'])
 async def add_tag(
     task_id: str,

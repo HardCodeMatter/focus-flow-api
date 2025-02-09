@@ -3,7 +3,6 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.elements import UnaryExpression
 
 from repository import BaseRepository
-
 from .models import Task, Tag
 from .schemas import TaskCreate, TaskUpdate, TagCreate, TagUpdate
 
