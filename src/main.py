@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from config import settings
 
 from tasks.routers import router as task_router
+from users.routers import router as user_router
 
 
 app: FastAPI = FastAPI(
@@ -11,6 +12,7 @@ app: FastAPI = FastAPI(
     version=settings.APP_VERSION
 )
 
+app.include_router(user_router)
 app.include_router(task_router)
 
 if __name__ == '__main__':

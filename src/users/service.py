@@ -34,6 +34,15 @@ class UserService:
             )
         
         return await self.repository.get_by_id(user_id)
+    
+    async def get_by_username(self, username: str) -> User:
+        if not await self.repository.user_exists_by_username(username):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='User is not found.'
+            )
+        
+        return await self.repository.get_by_username(username)
 
     async def update(self, user_id: str, user_data: UserUpdate) -> User:
         if not await self.repository.user_exists_by_id(user_id):

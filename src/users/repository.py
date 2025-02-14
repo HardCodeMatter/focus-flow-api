@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from users.models import User
 from users.schemas import UserCreate, UserUpdate
+from users.utils import hash_password
 
 
 class UserRepository:
@@ -10,6 +11,7 @@ class UserRepository:
         self.session = session
 
     async def create(self, user_data: UserCreate) -> User:
+        user_data.hashed_password = hash_password(user_data.hashed_password)
         user: User = User(**user_data.model_dump())
 
         self.session.add(user)
@@ -20,6 +22,14 @@ class UserRepository:
     
     async def get_by_id(self, user_id: str) -> User:
         stmt: Select[User] = select(User).filter_by(id=user_id)
+        user: User = (
+            await self.session.execute(stmt)
+        ).scalar_one()
+
+        return user
+    
+    async def get_by_username(self, username: str) -> User:
+        stmt: Select[User] = select(User).filter_by(username=username)
         user: User = (
             await self.session.execute(stmt)
         ).scalar_one()

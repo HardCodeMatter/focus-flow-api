@@ -3,6 +3,15 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: str
+
+
 class UserBase(BaseModel):
     fullname: str
     username: str
@@ -21,7 +30,8 @@ class UserRead(BaseModel):
     updated_at: datetime
 
 
-class UserCreate(UserBase): ...
+class UserCreate(UserBase):
+    hashed_password: str
 
 
 class UserUpdate(UserBase): ...
