@@ -1,3 +1,4 @@
+import typing
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -10,8 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from config import settings
 from database import get_async_session
 from users import service
-from users.models import User
 from users.schemas import TokenData
+
+if typing.TYPE_CHECKING:
+    from users.models import User
 
 
 password_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
@@ -24,8 +27,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return password_context.verify(plain_password, hashed_password)
 
 
-async def authenticate_user(session: AsyncSession, username: str, plain_password: str) -> User:
-    user: User = await service.UserService(session).get_by_username(username)
+async def authenticate_user(session: AsyncSession, username: str, plain_password: str) -> 'User':
+    user: 'User' = await service.UserService(session).get_by_username(username)
 
     if not verify_password(plain_password, user.hashed_password):
         raise HTTPException(
@@ -93,8 +96,8 @@ async def get_current_user(
 
 
 async def get_current_active_user(
-    current_user: User = Depends(get_current_user)
-) -> User:
+    current_user: 'User' = Depends(get_current_user)
+) -> 'User':
     if not current_user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

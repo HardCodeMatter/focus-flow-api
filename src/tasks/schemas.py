@@ -4,7 +4,8 @@ from datetime import datetime
 from fastapi import HTTPException, status
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from .models import Priority, TaskStatus
+from tasks.models import Priority, TaskStatus
+from users.schemas import UserRead
 
 
 class TaskBase(BaseModel):
@@ -86,10 +87,10 @@ class TaskRead(BaseModel):
     description: str
     status: TaskStatus
     priority: Priority
-    related_tags: list['TagRead'] = []
     created_at: datetime
     updated_at: datetime
     due_date: datetime | None
+    related_tags: list['TagRead'] = []
 
     model_config = ConfigDict(
         from_attributes=True,

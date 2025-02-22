@@ -9,12 +9,13 @@ from .schemas import TaskCreate, TaskUpdate, TagCreate, TagUpdate
 
 
 class TaskRepository(BaseRepository):
-    async def create(self, task_data: TaskCreate) -> Task:
+    async def create(self, task_data: TaskCreate, owner_id: str) -> Task:
         task: Task = Task(
             title=task_data.title,
             description=task_data.description,
             priority=task_data.priority,
             due_date=task_data.due_date,
+            owner_id=owner_id
         )
         
         self.session.add(task)
@@ -23,17 +24,18 @@ class TaskRepository(BaseRepository):
 
         return task
     
-    async def get_by_id(self, id: str) -> Task:
-        stmt: Select[Task] = select(Task).filter_by(id=id).options(selectinload(Task.related_tags))
+    async def get_by_id(self, task_id: str, owner_id: str) -> Task:
+        stmt: Select[Task] = select(Task).filter_by(id=task_id, owner_id=owner_id).options(selectinload(Task.related_tags))
         task: Task = (
             await self.session.execute(stmt)
-        ).scalar_one_or_none()
+        ).scalar_one()
 
         return task
     
-    async def get_all(self, page: int, limit: int, sort_by: str, order: UnaryExpression) -> list[Task]:
+    async def get_all(self, page: int, limit: int, sort_by: str, order: UnaryExpression, owner_id: str) -> list[Task]:
         stmt: Select[list[Task]] = (
             select(Task)
+            .filter_by(owner_id=owner_id)
             .options(selectinload(Task.related_tags))
             .order_by(order(sort_by))
             .offset((page - 1) * limit)
@@ -45,8 +47,8 @@ class TaskRepository(BaseRepository):
         
         return tasks
     
-    async def task_exists_by_id(self, id: str) -> bool:
-        stmt: Select[Task] = select(Task).filter_by(id=id)
+    async def task_exists_by_id(self, task_id: str, owner_id: str) -> bool:
+        stmt: Select[Task] = select(Task).filter_by(id=task_id, owner_id=owner_id)
         task: Task = (
             await self.session.execute(stmt)
         ).scalar_one_or_none()
