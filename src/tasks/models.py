@@ -62,6 +62,9 @@ class Tag(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
+    owner_id: Mapped[str] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
+    owner: Mapped['User'] = relationship(back_populates='tags')
+
     related_tasks: Mapped[list['Task']] = relationship(
         secondary='task_tags',
         back_populates='related_tags',

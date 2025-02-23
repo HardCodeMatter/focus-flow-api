@@ -103,8 +103,11 @@ class TaskRepository(BaseRepository):
 
 
 class TagRepository(BaseRepository):
-    async def create(self, tag_data: TagCreate) -> Tag:
-        tag: Tag = Tag(**tag_data.model_dump())
+    async def create(self, tag_data: TagCreate, owner_id: str) -> Tag:
+        tag: Tag = Tag(
+            **tag_data.model_dump(),
+            owner_id=owner_id
+        )
 
         self.session.add(tag)
         await self.session.commit()
@@ -112,17 +115,18 @@ class TagRepository(BaseRepository):
 
         return tag
     
-    async def get_by_id(self, tag_id: str) -> Tag:
-        stmt: Select[Tag] = select(Tag).filter_by(id=tag_id)
+    async def get_by_id(self, tag_id: str, owner_id: str) -> Tag:
+        stmt: Select[Tag] = select(Tag).filter_by(id=tag_id, owner_id=owner_id)
         tag: Tag = (
             await self.session.execute(stmt)
         ).scalar_one_or_none()
 
         return tag
 
-    async def get_all(self, page: int, limit: int) -> list[Tag]:
+    async def get_all(self, page: int, limit: int, owner_id: str) -> list[Tag]:
         stmt: Select[list[Tag]] = (
             select(Tag)
+            .filter_by(owner_id=owner_id)
             .offset((page - 1) * limit)
             .limit(limit)
         )
@@ -147,8 +151,8 @@ class TagRepository(BaseRepository):
 
         return True
 
-    async def tag_exists_by_id(self, id: str) -> bool:
-        stmt: Select[Tag] = select(Tag).filter_by(id=id)
+    async def tag_exists_by_id(self, tag_id: str, owner_id: str) -> bool:
+        stmt: Select[Tag] = select(Tag).filter_by(id=tag_id, owner_id=owner_id)
         tag: Tag = (
             await self.session.execute(stmt)
         ).scalar_one_or_none()

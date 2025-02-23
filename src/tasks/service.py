@@ -79,14 +79,14 @@ class TaskService(BaseService):
                 detail='Task is not found.'
             )
         
-        if not await self.tag_repository.tag_exists_by_id(tag_id):
+        if not await self.tag_repository.tag_exists_by_id(tag_id, owner_id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='Tag is not found.'
             )
         
         task: Task = await self.repository.get_by_id(task_id, owner_id)
-        tag: Tag = await self.tag_repository.get_by_id(tag_id)
+        tag: Tag = await self.tag_repository.get_by_id(tag_id, owner_id)
 
         if await self.repository.tag_exists_in_task(task_id, tag):
             raise HTTPException(
@@ -107,14 +107,14 @@ class TaskService(BaseService):
                 detail='Task is not found.'
             )
         
-        if not await self.tag_repository.tag_exists_by_id(tag_id):
+        if not await self.tag_repository.tag_exists_by_id(tag_id, owner_id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='Tag is not found.'
             )
         
         task: Task = await self.repository.get_by_id(task_id, owner_id)
-        tag: Tag = await self.tag_repository.get_by_id(tag_id)
+        tag: Tag = await self.tag_repository.get_by_id(tag_id, owner_id)
 
         if not await self.repository.tag_exists_in_task(task_id, tag):
             raise HTTPException(
@@ -134,40 +134,40 @@ class TagService(BaseService):
         super().__init__(session)
         self.repository = TagRepository(session)
 
-    async def create(self, tag_data: TagCreate) -> Tag:
-        return await self.repository.create(tag_data)
+    async def create(self, tag_data: TagCreate, owner_id: str) -> Tag:
+        return await self.repository.create(tag_data, owner_id)
     
-    async def get_by_id(self, id: str) -> Tag:
-        if not await self.repository.tag_exists_by_id(id):
+    async def get_by_id(self, tag_id: str, owner_id: str) -> Tag:
+        if not await self.repository.tag_exists_by_id(tag_id, owner_id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='Tag is not found.',
             )
 
-        return await self.repository.get_by_id(id)
+        return await self.repository.get_by_id(tag_id, owner_id)
 
-    async def get_all(self, page: int, limit: int) -> list[Tag]:
-        return await self.repository.get_all(page, limit)
+    async def get_all(self, page: int, limit: int, owner_id: str) -> list[Tag]:
+        return await self.repository.get_all(page, limit, owner_id)
 
-    async def update(self, id: str, tag_data: TagUpdate) -> ...:
-        if not await self.repository.tag_exists_by_id(id):
+    async def update(self, tag_id: str, tag_data: TagUpdate, owner_id: str) -> Tag:
+        if not await self.repository.tag_exists_by_id(tag_id, owner_id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='Tag is not found.',
             )
         
-        tag: Tag = await self.repository.get_by_id(id)
+        tag: Tag = await self.repository.get_by_id(tag_id, owner_id)
 
         return await self.repository.update(tag, tag_data)
 
-    async def delete(self, id: str) -> dict[str, str]:
-        if not await self.repository.tag_exists_by_id(id):
+    async def delete(self, tag_id: str, owner_id: str) -> dict[str, str]:
+        if not await self.repository.tag_exists_by_id(tag_id, owner_id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='Tag is not found.',
             )
         
-        tag: Tag = await self.repository.get_by_id(id)
+        tag: Tag = await self.repository.get_by_id(tag_id, owner_id)
         await self.repository.delete(tag)
 
         return {

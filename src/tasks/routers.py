@@ -25,7 +25,7 @@ async def create_task(
     return await TaskService(session).create(task_data, owner_id=current_user.id)
 
 
-@router.get('/tasks/{id}', status_code=200, tags=['Tasks'])
+@router.get('/tasks/{task_id}', status_code=200, tags=['Tasks'])
 async def get_task_by_id(
     task_id: str,
     current_user: 'User' = Depends(get_current_user),
@@ -45,7 +45,7 @@ async def get_tasks(
     return await TaskService(session).get_all(page, limit, params, owner_id=current_user.id)
 
 
-@router.patch('/tasks/{id}/update', status_code=200, tags=['Tasks'])
+@router.patch('/tasks/{task_id}/update', status_code=200, tags=['Tasks'])
 async def update_task(
     task_id: str,
     task_data: TaskUpdate,
@@ -55,7 +55,7 @@ async def update_task(
     return await TaskService(session).update(task_id, task_data, owner_id=current_user.id)
 
 
-@router.delete('/tasks/{id}/delete', status_code=200, tags=['Tasks'])
+@router.delete('/tasks/{task_id}/delete', status_code=200, tags=['Tasks'])
 async def delete_task(
     task_id: str,
     current_user: 'User' = Depends(get_current_active_user),
@@ -87,40 +87,45 @@ async def remove_tag(
 @router.post('/tags', status_code=201, tags=['Tags'])
 async def create_tag(
     tag_data: TagCreate,
+    current_user: 'User' = Depends(get_current_active_user),
     session: AsyncSession = Depends(get_async_session)
 ) -> TagRead:
-    return await TagService(session).create(tag_data)
+    return await TagService(session).create(tag_data, owner_id=current_user.id)
 
 
-@router.get('/tags/{id}', status_code=200, tags=['Tags'])
+@router.get('/tags/{tag_id}', status_code=200, tags=['Tags'])
 async def get_tag_by_id(
-    id: str,
+    tag_id: str,
+    current_user: 'User' = Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session)
 ) -> TagRead:
-    return await TagService(session).get_by_id(id)
+    return await TagService(session).get_by_id(tag_id, owner_id=current_user.id)
 
 
 @router.get('/tags', status_code=200, tags=['Tags'])
 async def get_tags(
     page: int = 1,
     limit: int = 5,
+    current_user: 'User' = Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session)
 ) -> list[TagRead]:
-    return await TagService(session).get_all(page, limit)
+    return await TagService(session).get_all(page, limit, owner_id=current_user.id)
 
 
-@router.patch('/tags/{id}/update', status_code=200, tags=['Tags'])
+@router.patch('/tags/{tag_id}/update', status_code=200, tags=['Tags'])
 async def update_tag(
-    id: str,
+    tag_id: str,
     tag_data: TagUpdate,
+    current_user: 'User' = Depends(get_current_active_user),
     session: AsyncSession = Depends(get_async_session)
 ) -> TagRead:
-    return await TagService(session).update(id, tag_data)
+    return await TagService(session).update(tag_id, tag_data, owner_id=current_user.id)
 
 
-@router.delete('/tags/{id}/delete', status_code=200, tags=['Tags'])
+@router.delete('/tags/{tag_id}/delete', status_code=200, tags=['Tags'])
 async def delete_tag(
-    id: str,
+    tag_id: str,
+    current_user: 'User' = Depends(get_current_active_user),
     session: AsyncSession = Depends(get_async_session)
 ) -> dict:
-    return await TagService(session).delete(id)
+    return await TagService(session).delete(tag_id, owner_id=current_user.id)
