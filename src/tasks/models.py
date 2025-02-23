@@ -1,3 +1,4 @@
+import typing
 import uuid
 from enum import Enum
 from datetime import datetime
@@ -6,6 +7,9 @@ from sqlalchemy import ForeignKey, func, Enum as SQLAlchemyEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
+
+if typing.TYPE_CHECKING:
+    from users.models import User
 
 
 class Priority(str, Enum):
@@ -34,6 +38,9 @@ class Task(Base):
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
     due_date: Mapped[datetime] = mapped_column(nullable=True)
 
+    owner_id: Mapped[str] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
+    owner: Mapped['User'] = relationship(back_populates='tasks')
+
     related_tags: Mapped[list['Tag']] = relationship(
         secondary='task_tags',
         back_populates='related_tasks',
@@ -54,6 +61,9 @@ class Tag(Base):
     
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+    owner_id: Mapped[str] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
+    owner: Mapped['User'] = relationship(back_populates='tags')
 
     related_tasks: Mapped[list['Task']] = relationship(
         secondary='task_tags',
