@@ -94,3 +94,22 @@ class TaskTag(Base):
 
     def __repr__(self) -> str:
         return self.__str__()
+
+
+class Comment(Base):
+    __tablename__ = 'comments'
+
+    id: Mapped[str] = mapped_column(primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    comment: Mapped[str] = mapped_column(nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(server_default=None, onupdate=func.now(), nullable=True)
+
+    owner_id: Mapped[str] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
+    task_id: Mapped[str] = mapped_column(ForeignKey('tasks.id', ondelete='CASCADE'))
+
+    def __str__(self) -> str:
+        return f'Comment(id="{self.id}", comment={self.comment}, user_id="{self.user_id}", task_id="{self.task_id}")'
+    
+    def __repr__(self) -> str:
+        return self.__str__()
