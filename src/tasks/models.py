@@ -41,6 +41,8 @@ class Task(Base):
     owner_id: Mapped[str] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
     owner: Mapped['User'] = relationship(back_populates='tasks')
 
+    comments: Mapped[list['Comment']] = relationship(back_populates='task')
+
     related_tags: Mapped[list['Tag']] = relationship(
         secondary='task_tags',
         back_populates='related_tasks',
@@ -106,7 +108,10 @@ class Comment(Base):
     updated_at: Mapped[datetime] = mapped_column(server_default=None, onupdate=func.now(), nullable=True)
 
     owner_id: Mapped[str] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
+    owner: Mapped['User'] = relationship(back_populates='comments')
+
     task_id: Mapped[str] = mapped_column(ForeignKey('tasks.id', ondelete='CASCADE'))
+    task: Mapped['Task'] = relationship(back_populates='comments')
 
     def __str__(self) -> str:
         return f'Comment(id="{self.id}", comment={self.comment}, user_id="{self.user_id}", task_id="{self.task_id}")'
