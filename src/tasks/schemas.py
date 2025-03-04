@@ -164,3 +164,21 @@ class TagCreate(TagBase): ...
 
 
 class TagUpdate(TagBase): ...
+
+
+class CommentBase(BaseModel):
+    comment: str
+
+
+class CommentRead(BaseModel):
+    id: str
+    comment: str
+    created_at: datetime
+    updated_at: datetime | None = None
+    owner: 'UserRead'
+
+
+class CommentCreate(CommentBase): ...
+
+
+class CommentUpdate(CommentBase): ...
