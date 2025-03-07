@@ -91,6 +91,7 @@ class TaskRead(BaseModel):
     updated_at: datetime
     due_date: datetime | None
     related_tags: list['TagRead'] = []
+    comments: list['CommentRead'] = []
 
     model_config = ConfigDict(
         from_attributes=True,

@@ -24,7 +24,12 @@ class TaskRepository(BaseRepository):
         return task
     
     async def get_by_id(self, task_id: str, owner_id: str) -> Task:
-        stmt: Select[Task] = select(Task).filter_by(id=task_id, owner_id=owner_id).options(selectinload(Task.related_tags))
+        stmt: Select[Task] = (
+            select(Task)
+            .filter_by(id=task_id, owner_id=owner_id)
+            .options(selectinload(Task.related_tags))
+            .options(selectinload(Task.comments))
+        )
         task: Task = (
             await self.session.execute(stmt)
         ).scalar_one()
@@ -36,6 +41,7 @@ class TaskRepository(BaseRepository):
             select(Task)
             .filter_by(owner_id=owner_id)
             .options(selectinload(Task.related_tags))
+            .options(selectinload(Task.comments))
             .order_by(order(sort_by))
             .offset((page - 1) * limit)
             .limit(limit)

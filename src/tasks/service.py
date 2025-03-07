@@ -4,9 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from service import BaseService
 
-from .models import Task, Tag
-from .repository import TaskRepository, TagRepository
-from .schemas import TaskCreate, TaskUpdate, SortBy, Order, TaskQueryParams, TagCreate, TagUpdate
+from .models import Comment, Task, Tag
+from .repository import TaskRepository, TagRepository, CommentRepository
+from .schemas import TaskCreate, TaskUpdate, SortBy, Order, TaskQueryParams, TagCreate, TagUpdate, CommentCreate, CommentUpdate
 
 
 class TaskService(BaseService):
@@ -172,4 +172,50 @@ class TagService(BaseService):
 
         return {
             'detail': 'Tag is successful deleted.'
+        }
+
+
+class CommentSerice(BaseService):
+    def __init__(self, session: AsyncSession) -> None:
+        super().__init__(session)
+        self.repository = CommentRepository(session)
+
+    async def create(self, comment_data: CommentCreate, owner_id: str) -> Comment:
+        return await self.repository.create(comment_data, owner_id)
+
+    async def get_by_id(self, comment_id: str, owner_id: str) -> Comment:
+        if not await self.repository.comment_exists_by_id(comment_id, owner_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Comment is not found.'
+            )
+        
+        return await self.repository.get_by_id(comment_id, owner_id)
+
+    async def get_all(self, page: int, limit: int, owner_id: str) -> list[Comment]:
+        return await self.repository.get_all(page, limit, owner_id)
+
+    async def update(self, comment_id: str, comment_data: CommentUpdate, owner_id: str) -> Comment:
+        if not await self.repository.comment_exists_by_id(comment_id, owner_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Comment is not found.'
+            )
+        
+        comment: Comment = await self.repository.get_by_id(comment_id, owner_id)
+        
+        return await self.repository.update(comment, comment_data)
+
+    async def delete(self, comment_id: str, owner_id: str) -> dict:
+        if not await self.repository.comment_exists_by_id(comment_id, owner_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Comment is not found.'
+            )
+        
+        comment: Comment = await self.repository.get_by_id(comment_id, owner_id)
+        await self.repository.delete(comment)
+
+        return {
+            'detail': 'Comment is successful deleted.'
         }
