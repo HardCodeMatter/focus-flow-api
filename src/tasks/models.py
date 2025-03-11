@@ -41,7 +41,7 @@ class Task(Base):
     owner_id: Mapped[str] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
     owner: Mapped['User'] = relationship(back_populates='tasks')
 
-    comments: Mapped[list['Comment']] = relationship(back_populates='task')
+    comments: Mapped[list['Comment']] = relationship(back_populates='task', cascade='all, delete-orphan')
 
     related_tags: Mapped[list['Tag']] = relationship(
         secondary='task_tags',
