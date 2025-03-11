@@ -114,7 +114,7 @@ class Comment(Base):
     task: Mapped['Task'] = relationship(back_populates='comments')
 
     def __str__(self) -> str:
-        return f'Comment(id="{self.id}", comment={self.comment}, user_id="{self.user_id}", task_id="{self.task_id}")'
+        return f'Comment(id="{self.id}", comment={self.comment}, user_id="{self.owner_id}", task_id="{self.task_id}")'
     
     def __repr__(self) -> str:
         return self.__str__()

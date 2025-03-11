@@ -19,7 +19,7 @@ class TaskRepository(BaseRepository):
         
         self.session.add(task)
         await self.session.commit()
-        await self.session.refresh(task, ['related_tags'])
+        await self.session.refresh(task, ['related_tags', 'comments'])
 
         return task
     
@@ -166,9 +166,10 @@ class TagRepository(BaseRepository):
 
 
 class CommentRepository(BaseRepository):
-    async def create(self, comment_data: CommentCreate, owner_id: str) -> Comment:
+    async def create(self, task_id: str, comment_data: CommentCreate, owner_id: str) -> Comment:
         comment: Comment = Comment(
             **comment_data.model_dump(),
+            task_id=task_id,
             owner_id=owner_id
         )
 

@@ -175,13 +175,20 @@ class TagService(BaseService):
         }
 
 
-class CommentSerice(BaseService):
+class CommentService(BaseService):
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(session)
         self.repository = CommentRepository(session)
+        self.task_repository = TaskRepository(session)
 
-    async def create(self, comment_data: CommentCreate, owner_id: str) -> Comment:
-        return await self.repository.create(comment_data, owner_id)
+    async def create(self, task_id: str, comment_data: CommentCreate, owner_id: str) -> Comment:
+        if not await self.task_repository.task_exists_by_id(task_id, owner_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Task is not found',
+            )
+
+        return await self.repository.create(task_id, comment_data, owner_id)
 
     async def get_by_id(self, comment_id: str, owner_id: str) -> Comment:
         if not await self.repository.comment_exists_by_id(comment_id, owner_id):

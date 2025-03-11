@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_async_session
 
-from tasks.schemas import TaskCreate, TaskRead, TaskUpdate, TaskQueryParams, TagCreate, TagRead, TagUpdate
-from tasks.service import TaskService, TagService
+from tasks.schemas import TaskCreate, TaskRead, TaskUpdate, TaskQueryParams, TagCreate, TagRead, TagUpdate, CommentCreate, CommentRead, CommentUpdate
+from tasks.service import TaskService, TagService, CommentService
 from users.utils import get_current_user, get_current_active_user
 
 if typing.TYPE_CHECKING:
@@ -129,3 +129,51 @@ async def delete_tag(
     session: AsyncSession = Depends(get_async_session)
 ) -> dict:
     return await TagService(session).delete(tag_id, owner_id=current_user.id)
+
+
+@router.post('/comments', status_code=201, tags=['Comments'])
+async def create_comment(
+    task_id: str,
+    comment_data: CommentCreate,
+    current_user: 'User' = Depends(get_current_active_user),
+    session: AsyncSession = Depends(get_async_session)
+) -> CommentRead:
+    return await CommentService(session).create(task_id, comment_data, owner_id=current_user.id)
+
+
+@router.get('/comments/{comment_id}', status_code=200, tags=['Comments'])
+async def get_comment_by_id(
+    comment_id: str,
+    current_user: 'User' = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session)
+) -> CommentRead:
+    return await CommentService(session).get_by_id(comment_id, owner_id=current_user.id)
+
+
+@router.get('/comments', status_code=200, tags=['Comments'])
+async def get_comments(
+    page: int = 1,
+    limit: int = 10,
+    current_user: 'User' = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session)
+) -> list[CommentRead]:
+    return await CommentService(session).get_all(page, limit, owner_id=current_user.id)
+
+
+@router.patch('/comments/{comment_id}/update', status_code=200, tags=['Comments'])
+async def update_comment(
+    comment_id: str,
+    comment_data: CommentUpdate,
+    current_user: 'User' = Depends(get_current_active_user),
+    session: AsyncSession = Depends(get_async_session)
+) -> CommentRead:
+    return await CommentService(session).update(comment_id, comment_data, owner_id=current_user.id)
+
+
+@router.delete('/comments/{comment_id}/delete', status_code=200, tags=['Comments'])
+async def delete_comment(
+    comment_id: str,
+    current_user: 'User' = Depends(get_current_active_user),
+    session: AsyncSession = Depends(get_async_session)
+) -> dict:
+    return await CommentService(session).delete(comment_id, owner_id=current_user.id)
