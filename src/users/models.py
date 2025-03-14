@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
 
 if typing.TYPE_CHECKING:
-    from tasks.models import Task, Tag
+    from tasks.models import Task, Tag, Comment
 
 
 class User(Base):
@@ -30,6 +30,7 @@ class User(Base):
 
     tasks: Mapped[list['Task']] = relationship(back_populates='owner')
     tags: Mapped[list['Tag']] = relationship(back_populates='owner')
+    comments: Mapped[list['Comment']] = relationship(back_populates='owner')
 
     def __str__(self) -> str:
         return f'User(id="{self.id}", username="{self.username}", is_active={self.is_active}, is_verified={self.is_verified}, is_superuser={self.is_superuser},)'

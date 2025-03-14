@@ -91,6 +91,7 @@ class TaskRead(BaseModel):
     updated_at: datetime
     due_date: datetime | None
     related_tags: list['TagRead'] = []
+    comments: list['CommentRead'] = []
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -164,3 +165,36 @@ class TagCreate(TagBase): ...
 
 
 class TagUpdate(TagBase): ...
+
+
+class CommentBase(BaseModel):
+    comment: str
+
+    @field_validator('comment')
+    @classmethod
+    def validate_comment(cls, value: str) -> str:
+        return cls.validate_length(value.strip(), 'Comment', 1, 300)
+
+    @staticmethod
+    def validate_length(value: str, field_name: str, min_length: int, max_length: int) -> str:
+        if not (min_length <= len(value) <= max_length):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f'{field_name} length must be between {min_length} and {max_length} characters.',
+            )
+
+        return value
+
+
+class CommentRead(BaseModel):
+    id: str
+    comment: str
+    created_at: datetime
+    updated_at: datetime | None = None
+    owner: 'UserRead'
+
+
+class CommentCreate(CommentBase): ...
+
+
+class CommentUpdate(CommentBase): ...

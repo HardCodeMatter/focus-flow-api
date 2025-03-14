@@ -41,6 +41,8 @@ class Task(Base):
     owner_id: Mapped[str] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
     owner: Mapped['User'] = relationship(back_populates='tasks')
 
+    comments: Mapped[list['Comment']] = relationship(back_populates='task', cascade='all, delete-orphan')
+
     related_tags: Mapped[list['Tag']] = relationship(
         secondary='task_tags',
         back_populates='related_tasks',
@@ -92,5 +94,27 @@ class TaskTag(Base):
     def __str__(self) -> str:
         return f'TaskTag(task_id="{self.task_id}", tag_id="{self.tag_id}")'
 
+    def __repr__(self) -> str:
+        return self.__str__()
+
+
+class Comment(Base):
+    __tablename__ = 'comments'
+
+    id: Mapped[str] = mapped_column(primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    comment: Mapped[str] = mapped_column(nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(server_default=None, onupdate=func.now(), nullable=True)
+
+    owner_id: Mapped[str] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
+    owner: Mapped['User'] = relationship(back_populates='comments')
+
+    task_id: Mapped[str] = mapped_column(ForeignKey('tasks.id', ondelete='CASCADE'))
+    task: Mapped['Task'] = relationship(back_populates='comments')
+
+    def __str__(self) -> str:
+        return f'Comment(id="{self.id}", comment={self.comment}, user_id="{self.owner_id}", task_id="{self.task_id}")'
+    
     def __repr__(self) -> str:
         return self.__str__()
