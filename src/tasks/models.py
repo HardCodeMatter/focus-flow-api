@@ -71,7 +71,7 @@ class Tag(Base):
         secondary='task_tags',
         back_populates='related_tags',
     )
-
+      
     def __str__(self) -> str:
         return f'Tag(id="{self.id}", title="{self.title}")'
 

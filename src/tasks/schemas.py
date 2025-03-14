@@ -87,9 +87,11 @@ class TaskRead(BaseModel):
     description: str
     status: TaskStatus
     priority: Priority
+    related_tags: list['TagRead'] = []
     created_at: datetime
     updated_at: datetime
     due_date: datetime | None
+
     related_tags: list['TagRead'] = []
     comments: list['CommentRead'] = []
 
@@ -166,7 +168,7 @@ class TagCreate(TagBase): ...
 
 class TagUpdate(TagBase): ...
 
-
+  
 class CommentBase(BaseModel):
     comment: str
 
