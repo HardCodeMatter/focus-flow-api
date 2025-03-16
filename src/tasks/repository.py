@@ -3,8 +3,16 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.elements import UnaryExpression
 
 from repository import BaseRepository
-from .models import Task, Tag, Comment
-from .schemas import TaskCreate, TaskUpdate, TagCreate, TagUpdate, CommentCreate, CommentUpdate
+from .models import Task, Tag, Comment, TaskReport
+from .schemas import (
+    TaskCreate, 
+    TaskUpdate, 
+    TagCreate, 
+    TagUpdate, 
+    CommentCreate, 
+    CommentUpdate, 
+    ReportCreate
+)
 
 
 class TaskRepository(BaseRepository):
@@ -222,3 +230,61 @@ class CommentRepository(BaseRepository):
         ).scalar_one_or_none()
 
         return comment is not None
+
+
+class ReportRepository(BaseRepository):
+    async def create(
+        self, 
+        report_data: ReportCreate, 
+        total_tasks: int, 
+        completed_tasks: int, 
+        overdue_tasks: int, 
+        owner_id: str
+    ) -> TaskReport:
+        report: TaskReport = TaskReport(
+            **report_data.model_dump(),
+            total_tasks=total_tasks,
+            completed_tasks=completed_tasks,
+            overdue_tasks=overdue_tasks,
+            owner_id=owner_id
+        )
+
+        self.session.add(report)
+        await self.session.commit()
+
+        return report
+    
+    async def get_by_id(self, report_id: str, owner_id: str) -> TaskReport:
+        stmt: Select[TaskReport] = select(TaskReport).filter_by(id=report_id, owner_id=owner_id)
+        report: TaskReport = (
+            await self.session.execute(stmt)
+        ).scalar_one()
+
+        return report
+    
+    async def get_all(self, page: int, limit: int, owner_id: str) -> list[TaskReport]:
+        stmt: Select[list[TaskReport]] = (
+            select(TaskReport)
+            .filter_by(owner_id=owner_id)
+            .offset((page - 1) * limit)
+            .limit(limit)
+        )
+        reports: list[TaskReport] = (
+            await self.session.execute(stmt)
+        ).scalars().all()
+
+        return reports
+    
+    async def delete(self, report: TaskReport) -> bool:
+        await self.session.delete(report)
+        await self.session.commit()
+
+        return True
+    
+    async def report_exists_by_id(self, report_id: str, owner_id: str) -> bool:
+        stmt: Select[TaskReport] = select(TaskReport).filter_by(id=report_id, owner_id=owner_id)
+        report: TaskReport = (
+            await self.session.execute(stmt)
+        ).scalar_one_or_none()
+
+        return report is not None

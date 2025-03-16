@@ -200,3 +200,21 @@ class CommentCreate(CommentBase): ...
 
 
 class CommentUpdate(CommentBase): ...
+
+
+class ReportBase(BaseModel): ...
+
+
+class ReportRead(BaseModel):
+    id: str
+    total_tasks: int
+    completed_tasks: int
+    overdue_tasks: int
+    start_date: datetime
+    end_date: datetime
+    created_at: datetime
+
+
+class ReportCreate(ReportBase):
+    start_date: datetime
+    end_date: datetime
