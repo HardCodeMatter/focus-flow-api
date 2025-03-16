@@ -9,7 +9,7 @@ from alembic import context
 
 from config import settings
 from database import Base
-from tasks.models import Task, Tag, TaskTag, Comment
+from tasks.models import Task, Tag, TaskTag, Comment, TaskReport
 from users.models import User
 
 # this is the Alembic Config object, which provides

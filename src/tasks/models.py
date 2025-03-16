@@ -118,3 +118,27 @@ class Comment(Base):
     
     def __repr__(self) -> str:
         return self.__str__()
+
+
+class TaskReport(Base):
+    __tablename__ = 'task_report'
+
+    id: Mapped[str] = mapped_column(primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+
+    total_tasks: Mapped[int] = mapped_column(default=0, nullable=False)
+    completed_tasks: Mapped[int] = mapped_column(default=0, nullable=False)
+    overdue_tasks: Mapped[int] = mapped_column(default=0, nullable=False)
+
+    start_date: Mapped[datetime] = mapped_column(nullable=True)
+    end_date: Mapped[datetime] = mapped_column(nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
+
+    owner_id: Mapped[str] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
+    owner: Mapped['User'] = relationship(back_populates='reports')
+
+    def __str__(self) -> str:
+        return f'TaskReport(id={self.id}, start_date={self.start_date}, end_date={self.end_date}, created_at={self.created_at})'
+    
+    def __repr__(self) -> str:
+        return self.__str__()
