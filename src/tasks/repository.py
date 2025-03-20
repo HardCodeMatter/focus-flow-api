@@ -1,9 +1,9 @@
-from sqlalchemy import Select, select
+from sqlalchemy import Select, select, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.elements import UnaryExpression
 
 from repository import BaseRepository
-from .models import Task, Tag, Comment, TaskReport
+from .models import Task, Tag, Comment, TaskReport, TaskStatus
 from .schemas import (
     TaskCreate, 
     TaskUpdate, 
@@ -59,6 +59,19 @@ class TaskRepository(BaseRepository):
         ).scalars().all()
         
         return tasks
+    
+    async def get_count_by_status(self, status: TaskStatus, report_data: ReportCreate, owner_id: str) -> int:
+        stmt: Select[int] = (
+            select(func.count())
+            .select_from(Task)
+            .filter_by(status=status, owner_id=owner_id)
+            .filter(Task.created_at >= report_data.start_date, Task.created_at <= report_data.end_date)
+        )
+        count: int = (
+            await self.session.execute(stmt)
+        ).scalar_one()
+
+        return count
     
     async def task_exists_by_id(self, task_id: str, owner_id: str) -> bool:
         stmt: Select[Task] = select(Task).filter_by(id=task_id, owner_id=owner_id)

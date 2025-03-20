@@ -4,9 +4,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from service import BaseService
 
-from .models import Comment, Task, Tag
-from .repository import TaskRepository, TagRepository, CommentRepository
-from .schemas import TaskCreate, TaskUpdate, SortBy, Order, TaskQueryParams, TagCreate, TagUpdate, CommentCreate, CommentUpdate
+from .models import Comment, Task, Tag, TaskReport, TaskStatus
+from .repository import TaskRepository, TagRepository, CommentRepository, ReportRepository
+from .schemas import (
+    TaskCreate,
+    TaskUpdate,
+    SortBy,
+    Order,
+    TaskQueryParams,
+    TagCreate,
+    TagUpdate,
+    CommentCreate,
+    CommentUpdate,
+    ReportCreate,
+    ReportRead
+)
 
 
 class TaskService(BaseService):
@@ -225,4 +237,51 @@ class CommentService(BaseService):
 
         return {
             'detail': 'Comment is successful deleted.'
+        }
+
+
+class ReportService(BaseService):
+    def __init__(self, session: AsyncSession) -> None:
+        super().__init__(session)
+        self.repository = ReportRepository(session)
+        self.task_repository = TaskRepository(session)
+
+    async def create(self, report_data: ReportCreate, owner_id: str) -> TaskReport:
+        ongoing_count: int = await self.task_repository.get_count_by_status(TaskStatus.ongoing, report_data, owner_id)
+        completed_count: int = await self.task_repository.get_count_by_status(TaskStatus.completed, report_data, owner_id)
+        overdue_count: int = await self.task_repository.get_count_by_status(TaskStatus.overdue, report_data, owner_id)
+        total_tasks: int = ongoing_count + completed_count + overdue_count
+
+        return await self.repository.create(
+            report_data=report_data,
+            total_tasks=total_tasks,
+            completed_tasks=completed_count, 
+            overdue_tasks=overdue_count, 
+            owner_id=owner_id
+        )
+
+    async def get_by_id(self, report_id: str, owner_id: str) -> ReportRead:
+        if not await self.repository.report_exists_by_id(report_id, owner_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Report is not found.'
+            )
+        
+        return await self.repository.get_by_id(report_id, owner_id)
+    
+    async def get_all(self, page: int, limit: int, owner_id: str) -> list[ReportRead]:
+        return await self.repository.get_all(page, limit, owner_id)
+    
+    async def delete(self, report_id: str, owner_id: str) -> dict:
+        if not await self.repository.report_exists_by_id(report_id, owner_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Report is not found.'
+            )
+        
+        report: TaskReport = await self.repository.get_by_id(report_id, owner_id)
+        await self.repository.delete(report)
+
+        return {
+            'detail': 'Report is successful deleted.'
         }
